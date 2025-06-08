@@ -1,4 +1,74 @@
 const SanPham = require('../model/sanpham');
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
+
+// Cấu hình multer cho upload file
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    const uploadDir = path.join(__dirname, '../uploads');
+    // Ensure directory exists
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+    cb(null, uploadDir);
+  },
+  filename: function (req, file, cb) {
+    // Generate unique filename
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    const extension = path.extname(file.originalname);
+    cb(null, file.fieldname + '-' + uniqueSuffix + extension);
+  }
+});
+
+// File filter for images only
+const fileFilter = (req, file, cb) => {
+  if (file.mimetype.startsWith('image/')) {
+    cb(null, true);
+  } else {
+    cb(new Error('Chỉ chấp nhận file hình ảnh!'), false);
+  }
+};
+
+const upload = multer({
+  storage: storage,
+  limits: {
+    fileSize: 5 * 1024 * 1024 // 5MB limit
+  },
+  fileFilter: fileFilter
+});
+
+// Upload image endpoint
+const uploadImage = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        message: 'Không có file được upload'
+      });
+    }
+
+    // Return the file path
+    const imagePath = `/uploads/${req.file.filename}`;
+    
+    res.status(200).json({
+      success: true,
+      message: 'Upload hình ảnh thành công',
+      data: {
+        imagePath: imagePath,
+        filename: req.file.filename,
+        originalName: req.file.originalname,
+        size: req.file.size
+      }
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Lỗi khi upload hình ảnh',
+      error: error.message
+    });
+  }
+};
 
 // Tạo sản phẩm mới (Create)
 const createSanPham = async (req, res) => {
@@ -195,5 +265,7 @@ module.exports = {
   getSanPhamById,
   updateSanPham,
   deleteSanPham,
-  searchSanPham
+  searchSanPham,
+  uploadImage,
+  upload
 };

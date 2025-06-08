@@ -1,15 +1,19 @@
 const express = require("express")
 const cors = require("cors")
 const mongoose = require("mongoose")
+const path = require("path")
 const sanPhamRoute = require("./route/routesanpham")
 const donHangRoute = require("./route/routedonhang")
 
 const app = express();
 require("dotenv").config();
 
-
 app.use(express.json());
 app.use(cors());
+
+// Serve static files from uploads directory
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
 app.use("/api/sanpham", sanPhamRoute);
 app.use("/api/donhang", donHangRoute);
 
