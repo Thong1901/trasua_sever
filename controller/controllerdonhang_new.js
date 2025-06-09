@@ -4,8 +4,8 @@ const SanPham = require('../model/sanpham');
 // Tạo đơn hàng hoàn chỉnh (thông tin khách hàng + chi tiết sản phẩm)
 const createDonHangHoanChinh = async (req, res) => {
   try {
-    console.log('=== DEBUG: Request body ===');
-    console.log(JSON.stringify(req.body, null, 2));
+    // console.log('=== DEBUG: Request body ===');
+    // console.log(JSON.stringify(req.body, null, 2));
     
     const { ten_khach, sdt, dia_chi, ghi_chu_don_hang, san_phams } = req.body;
     
@@ -21,8 +21,8 @@ const createDonHangHoanChinh = async (req, res) => {
     const sanPhamData = [];
     
     for (let item of san_phams) {
-      console.log('=== DEBUG: Processing item ===');
-      console.log('item:', item);
+      // console.log('=== DEBUG: Processing item ===');
+      // console.log('item:', item);
       
       // Kiểm tra sản phẩm có tồn tại không
       const sanPham = await SanPham.findById(item.san_pham_id);
@@ -67,8 +67,8 @@ const createDonHangHoanChinh = async (req, res) => {
       );
     }
     
-    console.log('=== DEBUG: Creating order with data ===');
-    console.log('sanPhamData:', JSON.stringify(sanPhamData, null, 2));
+    // console.log('=== DEBUG: Creating order with data ===');
+    // console.log('sanPhamData:', JSON.stringify(sanPhamData, null, 2));
     
     // Tạo đơn hàng với tất cả thông tin
     const donHang = new Order({
@@ -80,8 +80,8 @@ const createDonHangHoanChinh = async (req, res) => {
     });
     
     const savedDonHang = await donHang.save();
-    console.log('=== DEBUG: Order saved successfully ===');
-    console.log('savedDonHang:', savedDonHang);
+    // console.log('=== DEBUG: Order saved successfully ===');
+    // console.log('savedDonHang:', savedDonHang);
     
     res.status(201).json({
       success: true,
