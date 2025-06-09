@@ -9,12 +9,8 @@ const sanPhamSchema = new mongoose.Schema({
     type: String, 
     required: true,
     enum: [
-      'Trà Sữa Truyền Thống',
-      'Trà Sữa Trái Cây',
-      'Trà Sữa Đặc Biệt',
-      'Trà Nguyên Chất',
-      'Nước Ép Trái Cây',
-      'Topping'
+      'Trà Sữa',
+      'Trà'
     ]
   },
   trangThai: { 
