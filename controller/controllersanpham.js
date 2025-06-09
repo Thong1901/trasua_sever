@@ -3,6 +3,24 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 
+// Helper function to convert image to base64
+const convertImageToBase64 = (filePath) => {
+  try {
+    const imageBuffer = fs.readFileSync(filePath);
+    const mimeType = path.extname(filePath).toLowerCase() === '.png' ? 'image/png' : 'image/jpeg';
+    return `data:${mimeType};base64,${imageBuffer.toString('base64')}`;
+  } catch (error) {
+    console.error('Error converting image to base64:', error);
+    return null;
+  }
+};
+
+// Helper function to check if file exists
+const checkFileExists = (filePath) => {
+  const fullPath = path.join(__dirname, '..', filePath);
+  return fs.existsSync(fullPath);
+};
+
 // Cấu hình multer cho upload file
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
@@ -48,7 +66,10 @@ const uploadImage = async (req, res) => {
       });
     }
 
-    // Return the file path
+    // Convert image to base64 for backup
+    const base64Image = convertImageToBase64(req.file.path);
+
+    // Return the file path and base64
     const imagePath = `/uploads/${req.file.filename}`;
     
     res.status(200).json({
@@ -56,6 +77,7 @@ const uploadImage = async (req, res) => {
       message: 'Upload hình ảnh thành công',
       data: {
         imagePath: imagePath,
+        base64: base64Image,
         filename: req.file.filename,
         originalName: req.file.originalname,
         size: req.file.size
@@ -73,7 +95,7 @@ const uploadImage = async (req, res) => {
 // Tạo sản phẩm mới (Create)
 const createSanPham = async (req, res) => {
   try {
-    const { ten, moTa, gia, soLuong, danhMuc, trangThai, hinhAnh } = req.body;
+    const { ten, moTa, gia, soLuong, danhMuc, trangThai, hinhAnh, hinhAnhBase64 } = req.body;
     
     const sanPham = new SanPham({
       ten,
@@ -82,7 +104,8 @@ const createSanPham = async (req, res) => {
       soLuong,
       danhMuc,
       trangThai,
-      hinhAnh
+      hinhAnh,
+      hinhAnhBase64
     });
 
     const savedSanPham = await sanPham.save();
@@ -117,10 +140,26 @@ const getAllSanPham = async (req, res) => {
     }
     
     const sanPhams = await SanPham.find(filter).sort({ ngayCapNhat: -1 });
+    
+    // Check if image files exist and provide fallback
+    const sanPhamsWithImageCheck = sanPhams.map(sanPham => {
+      const sanPhamObj = sanPham.toObject();
+      
+      // If image path exists but file is missing, use base64 fallback
+      if (sanPhamObj.hinhAnh && !checkFileExists(sanPhamObj.hinhAnh) && sanPhamObj.hinhAnhBase64) {
+        sanPhamObj.hinhAnh = sanPhamObj.hinhAnhBase64;
+        sanPhamObj.imageSource = 'base64';
+      } else if (sanPhamObj.hinhAnh) {
+        sanPhamObj.imageSource = 'file';
+      }
+      
+      return sanPhamObj;
+    });
+    
     res.status(200).json({
       success: true,
       message: 'Lấy danh sách sản phẩm thành công',
-      data: sanPhams
+      data: sanPhamsWithImageCheck
     });
   } catch (error) {
     res.status(500).json({
@@ -144,10 +183,20 @@ const getSanPhamById = async (req, res) => {
       });
     }
 
+    const sanPhamObj = sanPham.toObject();
+    
+    // If image path exists but file is missing, use base64 fallback
+    if (sanPhamObj.hinhAnh && !checkFileExists(sanPhamObj.hinhAnh) && sanPhamObj.hinhAnhBase64) {
+      sanPhamObj.hinhAnh = sanPhamObj.hinhAnhBase64;
+      sanPhamObj.imageSource = 'base64';
+    } else if (sanPhamObj.hinhAnh) {
+      sanPhamObj.imageSource = 'file';
+    }
+
     res.status(200).json({
       success: true,
       message: 'Lấy sản phẩm thành công',
-      data: sanPham
+      data: sanPhamObj
     });
   } catch (error) {
     res.status(500).json({
@@ -267,5 +316,7 @@ module.exports = {
   deleteSanPham,
   searchSanPham,
   uploadImage,
-  upload
+  upload,
+  convertImageToBase64,
+  checkFileExists
 };

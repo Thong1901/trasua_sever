@@ -22,7 +22,8 @@ const sanPhamSchema = new mongoose.Schema({
     enum: ['co_san', 'het_hang'], 
     default: 'co_san' 
   },
-  hinhAnh: { type: String },
+  hinhAnh: { type: String }, // URL path to image file
+  hinhAnhBase64: { type: String }, // Base64 backup of image
   ngayTao: { type: Date, default: Date.now },
   ngayCapNhat: { type: Date, default: Date.now }
 });

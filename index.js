@@ -2,11 +2,19 @@ const express = require("express")
 const cors = require("cors")
 const mongoose = require("mongoose")
 const path = require("path")
+const fs = require("fs")
 const sanPhamRoute = require("./route/routesanpham")
 const donHangRoute = require("./route/routedonhang")
 
 const app = express();
 require("dotenv").config();
+
+// Ensure uploads directory exists
+const uploadsDir = path.join(__dirname, 'uploads');
+if (!fs.existsSync(uploadsDir)) {
+    fs.mkdirSync(uploadsDir, { recursive: true });
+    console.log('Created uploads directory');
+}
 
 app.use(express.json());
 app.use(cors());
